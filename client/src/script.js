@@ -571,7 +571,7 @@ const LANG_TAG_RE = /\s*\[\[_\^_[a-zA-Z-]+\]\]\s*/g;
 function markdownToSpeech(say, french) {
     return say
         .replace(/\|\|.+?(\|\||$)/g, french ? "divulgacher" : "spoiler")
-        .replace(/\^\^|\$r\$|!t!|\?o\?|\*\*|--|~~|__|\$j\$|\$h\$|\*b\*|\\n|%%/g, "")
+        .replace(/\^\^|\$r\$|\$s\$|\$g\$|!t!|\?o\?|\*\*|--|~~|__|\$j\$|\$h\$|\*b\*|\\n|%%/g, "")
         .replace(/\$(?:c|color):([^$]+)\$(.*?)\$(?:c|color)\$/g, "$2");
 }
 

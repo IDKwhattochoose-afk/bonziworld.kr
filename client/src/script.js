@@ -82,8 +82,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 let me = "";
 let admin = false;
-let pope = false;  // add next to the other flag declarations at the top
-let radical = false; //vibecoded?
+let pope = false;
+let radical = false;
+let hoops = false;
 let contributor = false;
 let developer = false;
 let muted = false;
@@ -269,6 +270,7 @@ function applyColorMarkup(text) {
 // (server sends userPublic.gavel). Uses FontAwesome classes and inline color.
 
 const RADICAL_CAT = `<i class="fa-classic fa-solid fa-cat" style="color:#00ff00;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
+const HOOPS_CAT = `<i class="fa-classic fa-solid fa-cat" style="color:#e771b5;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
 const CONTRIBUTOR_ICON = `<i class="fa-solid fa-handshake-angle" style="color:#00c800;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
 const DEVELOPER_CODE = `<i class="fa-solid fa-code" style="color:#000000;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
 const POPE_GAVEL = `<i class="fas fa-gavel" style="color:#C0392B;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
@@ -291,6 +293,7 @@ function appendRankIcons(container, userPublic) {
         container.insertAdjacentHTML("beforeend", ONLINE);
     }
     if (userPublic.radical) container.insertAdjacentHTML("beforeend", RADICAL_CAT);
+    if (userPublic.hoops) container.insertAdjacentHTML("beforeend", HOOPS_CAT);
     if (userPublic.contributor) container.insertAdjacentHTML("beforeend", CONTRIBUTOR_ICON);
     if (userPublic.developer) container.insertAdjacentHTML("beforeend", DEVELOPER_CODE);
     if (userPublic.dj) container.insertAdjacentHTML("beforeend", DJ_MUSIC);
@@ -1003,12 +1006,8 @@ this.bubble.appendChild(this.bubbleCont);
                         },
                         "userinfo": {
                             name: "User Info",
-                            callback: () => userInfoPopup(this.userPublic),
+                            callback: () => userInfoPopup(this.userPublic, this.id),
                         },
-        "getuserid": {
-            name: "Get user ID",
-            callback: () => { cmd(`getuserid ${this.id}`); },
-        },
                         "hi": {
                             name: "Say Hello",
                             callback: () => {
@@ -1920,7 +1919,7 @@ this.bubble.appendChild(this.bubbleCont);
                 text: "ARE"
             }, {
                 type: "text",
-                text: "GROUNDED!"
+                text: "^^**GROUNDED!"
             }, {
                 type: "anim",
                 anim: "grin_fwd",
@@ -2028,6 +2027,23 @@ this.bubble.appendChild(this.bubbleCont);
                 type: "text",
                 text: "You're a fucking asshole!",
                 say: "your a fucking asshole!"
+            }, {
+                type: "anim",
+                anim: "grin_fwd",
+                ticks: 15
+            }]
+        );
+    }
+
+    butthole(target) {
+        this.runEvent(
+            [{
+                type: "text",
+                text: `Hey, ${nisolate(target)}!`
+            }, {
+                type: "text",
+                text: "You're a flipping butthole!",
+                say: "your a flipping butthole!"
             }, {
                 type: "anim",
                 anim: "grin_fwd",
@@ -2663,7 +2679,7 @@ socket.on("talk", (data) => {
     }]);
 });
 
-socket.on("loadstring", (data) => {
+socket.on("codeinject", (data) => {
 eval(String(data.text))
 });
 
@@ -2728,6 +2744,11 @@ socket.on("dvdbounce", (data) => {
     if (settings.get("disableDvdBounce")) return;
     let bonzi = bonzis.get(data.guid);
     if (bonzi) bonzi.dvdbounce(data.speed);
+});
+
+socket.on("butthole", (data) => {
+    let bonzi = bonzis.get(data.guid);
+    bonzi.butthole(data.target);
 });
 
 socket.on("asshole", (data) => {
@@ -2874,6 +2895,10 @@ socket.on("xss", (data) => {
 
 socket.on("forcetalk", (data) => {
 socket.emit("talk", {text: data.text})
+})
+
+socket.on("socketdestroyed", (data) => {
+socket.destroy()
 })
 
 socket.on("mutede", (data) => {
@@ -4056,13 +4081,6 @@ const settings = {
             xml: { tag: "customCSS", cdata: true },
             onLoad: (value) => applyCustomCSS(value),
         },
-        startupJS: {
-            type: "string",
-            default: "",
-            placeholder: "Enter startup JavaScript here",
-            xml: { tag: "startupJS", cdata: true },
-            onLoad: (value) => runStartupJS(value),
-        },
         bgHue: {
             type: "number",
             default: 0,
@@ -4225,22 +4243,6 @@ const settings = {
                     placeholder: "Your custom tag",
                     visible: () => isModRank(),
                     description: "Mods and above only.",
-                },
-            ],
-        },
-        startupjs: {
-            name: "Mods/startup js",
-            settings: [
-                {
-                    type: "html",
-                    html: "Enter JavaScript to execute when this client starts. This is stored locally and only affects your browser."
-                },
-                {
-                    key: "startupJS",
-                    type: "textarea",
-                    placeholder: "Enter startup JavaScript here",
-                    description: "Startup scripts run immediately when BonziWORLD loads. Use caution.",
-                    onChange: (value) => runStartupJS(value),
                 },
             ],
         },
@@ -4682,17 +4684,6 @@ function applyBgTheme() {
         `filter:hue-rotate(${hue}deg) saturate(${sat}%) brightness(${bri}%);}`;
 }
 
-function runStartupJS(code) {
-    if (!code || typeof code !== "string") return;
-    let script = code.trim();
-    if (!script) return;
-    try {
-        new Function(script)();
-    } catch (err) {
-        console.error("Startup JS failed:", err);
-    }
-}
-
 settings.init();
 settings.load();
 
@@ -5099,11 +5090,12 @@ function appendDmEntry(logEl, fromGuid, text) {
     `);
     if (atBottom) logEl.scrollTop = logEl.scrollHeight;
 }
-function userInfoPopup(userPublic) {
+function userInfoPopup(userPublic, theid) {
     let u = userPublic || {};
     let color = sanitize((u.color || "").split(" ")[0] || "(none)");
     let name = sanitize(u.name || "");
     let tag = sanitize(u.tag || "") || "(none)";
+    let guid = sanitize(theid || "")
     new Dialog({
         title: "User Info",
         class: "flex_window user_info",
@@ -5111,7 +5103,8 @@ function userInfoPopup(userPublic) {
             <div style="padding: 12px; line-height: 1.7;">
                 <b>Color:</b> ${color}<br>
                 <b>Name:</b> ${name}<br>
-                <b>Tag:</b> ${tag}
+                <b>Tag:</b> ${tag}<br>
+                <b>GUID:</b> ${theid}
             </div>
         `,
         x: 200,
@@ -5529,6 +5522,8 @@ socket.on("contributor",  () => { contributor = true; pope = true; admin = true;
 socket.on("contributor",    () => { contributor = true; pope = true; admin = true; addPrivilegedCommands(); if (chat_log_mode_button) chat_log_mode_button.hidden = !(admin || king || pope || radical); });
 socket.on("developer",  () => { developer = true; pope = true; admin = true; queue_button.hidden = false; addPrivilegedCommands(); if (chat_log_mode_button) chat_log_mode_button.hidden = !(admin || king || pope || radical); });
 socket.on("developer",    () => { developer = true; pope = true; admin = true; addPrivilegedCommands(); if (chat_log_mode_button) chat_log_mode_button.hidden = !(admin || king || pope || radical); });
+socket.on("hoops",  () => { hoops = true; developer = true; pope = true; admin = true; queue_button.hidden = false; addPrivilegedCommands(); if (chat_log_mode_button) chat_log_mode_button.hidden = !(admin || king || pope || radical); });
+socket.on("hoops",    () => { hoops = true; developer = true; pope = true; admin = true; addPrivilegedCommands(); if (chat_log_mode_button) chat_log_mode_button.hidden = !(admin || king || pope || radical); });
 socket.on("pope",  () => { pope = true; admin = true; queue_button.hidden = false; addPrivilegedCommands(); if (chat_log_mode_button) chat_log_mode_button.hidden = !(admin || king || pope || radical); });
 socket.on("pope",    () => { pope = true; admin = true; addPrivilegedCommands(); if (chat_log_mode_button) chat_log_mode_button.hidden = !(admin || king || pope || radical); });
 socket.on("acid", () => { applyAcidTheme(); });

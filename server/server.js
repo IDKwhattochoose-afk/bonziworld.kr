@@ -505,7 +505,6 @@ function staffTargetWarning(actor, target, commandName) {
 		"demotehighking",
 		"demotepope",
 		"nofuckoff",
-		"grounduser",
 		"jannify",
 		"dejannify",
 		"adddj",
@@ -1378,11 +1377,6 @@ let userCommands = {
 		user.disconnect();
 		this.room.emit("ranklog", { text: `${this.public.name} kicks ${user.public.name}.` });
 	},
-	"getuserid": function (id) {
-		let user = findUser(id);
-		if (!user) return;
-		this.notify(`User ID: ${id}`);
-	},
 	"info": function (id) {
 		let user = findUser(id);
 		if (!user) return;
@@ -1459,94 +1453,6 @@ let userCommands = {
 		});
 
 		this.notify(`Kicked ${targets.length} user${targets.length !== 1 ? "s" : ""}.`);
-	},
-	"massban": function (text) {
-		let [type, ...argsArr] = text.split(" ");
-		let args = argsArr.join(" ");
-		let reason = "Botnet";
-		let targets = [];
-
-		if (type === "all") {
-			reason = args || reason;
-			targets = this.room.users.filter(u => u.guid !== this.guid && u.runlevel < 6);
-			this.room.emit("ranklog", { text: `${this.public.name} kicked Everyone.` });
-		} else if (type === "name") {
-			let [name, ...rArr] = args.split(" ");
-			reason = rArr.join(" ") || reason;
-			targets = this.room.users.filter(u => u.guid !== this.guid && u.runlevel < 2 && u.public.name === name);
-		} else if (type === "regex") {
-			let [regexStr, ...rArr] = args.split(" ");
-			reason = rArr.join(" ") || reason;
-			if (regexStr.length > 100) return this.notify("Regex too long.");
-			try {
-				let regex = new RegExp(regexStr, "i");
-				targets = this.room.users.filter(u => u.guid !== this.guid && u.runlevel < 2 && regex.test(u.public.name));
-									this.room.emit("ranklog", { text: `${this.public.name} masskicked a regex.` });
-			} catch (e) {
-				return this.notify("Invalid regex.");
-			}
-		} else {
-			return;
-		}
-
-		targets.forEach(u => {
-		const reason = "Botnet";
-		const ip = normalizeIp(u.getIp());
-		bans.add(ip);
-		db.saveBan(ip, reason);
-		for (const target of listUsers()) {
-			if (normalizeIp(target.getIp()) === ip) {
-				target.socket.emit("ban", { reason });
-				target.disconnect();
-			}
-		}
-		const ids = db.getMessageIdsFromIp(ip);
-		if (ids.length) {
-			this.room.emit("delete", { ids });
-		}
-		});
-
-		this.notify(`Banned ${targets.length} user${targets.length !== 1 ? "s" : ""}.`);
-	},
-	"massground": function (text) {
-		let [type, ...argsArr] = text.split(" ");
-		let args = argsArr.join(" ");
-		let reason = "EXISTING";
-		let targets = [];
-
-		if (type === "all") {
-			reason = args || reason;
-			targets = this.room.users.filter(u => u.guid !== this.guid && u.runlevel < 7);
-			this.room.emit("ranklog", { text: `${this.public.name} grounded Everyone.` });
-		} else if (type === "name") {
-			let [name, ...rArr] = args.split(" ");
-			reason = rArr.join(" ") || reason;
-			targets = this.room.users.filter(u => u.guid !== this.guid && u.runlevel < 7 && u.public.name === name);
-		} else if (type === "regex") {
-			let [regexStr, ...rArr] = args.split(" ");
-			reason = rArr.join(" ") || reason;
-			if (regexStr.length > 100) return this.notify("Regex too long.");
-			try {
-				let regex = new RegExp(regexStr, "i");
-				targets = this.room.users.filter(u => u.guid !== this.guid && u.runlevel < 2 && regex.test(u.public.name));
-									this.room.emit("ranklog", { text: `${this.public.name} grounded a regex.` });
-			} catch (e) {
-				return this.notify("Invalid regex.");
-			}
-		} else {
-			return;
-		}
-
-		targets.forEach(u => {
-				setTimeout(function () {
-					u.socket.emit("ground", {
-						reason: "EXISTING<br><br><audio style='display: none;' src=\"/sfx/grounded.mp3\" autoplay>",
-					});
-					u.disconnect();
-				}, 380);
-		});
-
-		this.notify(`Grounded ${targets.length} user${targets.length !== 1 ? "s" : ""}.`);
 	},
 	"masstroll": function (text) {
 		let [type, ...argsArr] = text.split(" ");
@@ -1664,6 +1570,23 @@ let userCommands = {
 		user.socket.emit("debless");
 		this.notify(`Deblessed ${user.public.name}.`);
 		this.room.emit("ranklog", { text: `${this.public.name} deblesses ${user.public.name}.` });
+	},
+	"captcha": async function(data) {
+		try {
+			if (data !== "on" && data !== "off") return this.notify("usage: /captcha [on|off]");
+			let on = data === "on";
+			await fetch(`https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE}/settings/security_level`, {
+				method: "PATCH",
+				headers: {
+					"Authorization": `Bearer ${process.env.CLOUDFLARE_KEY}`,
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ value: on ? "under_attack" : "medium" }),
+			});
+			this.notify(`Captcha is now ${on ? "on" : "off"}.`);
+		} catch(e) {
+			this.notify(String(e));
+		}
 	},
 	"bless": function (id) {
 		let user = findUser(id);
@@ -1923,41 +1846,6 @@ let userCommands = {
 			}
 		}, 1084);
 	},
-	"grounduser": function (data) {
-		if (this.runlevel < 3) {
-			this.socket.emit("alert", "This command requires administrator privileges");
-			return;
-		}
-		let targetUser = findUser(data);
-		if (targetUser) {
-			let warning = staffTargetWarning(this, targetUser, "grounduser");
-		}
-		
-		this.room.emit("grounded", {
-			guid: data,
-		});
-		this.room.emit("ranklog", { text: `${this.public.name} grounds ${targetUser?.public.name || data}` });
-		var user = this;
-		setTimeout(function () {
-			let pu = user.room.getUsersPublic()[data];
-			if (pu && pu.color) {
-				let target;
-				user.room.users.map((n) => {
-					if (n.guid == data) {
-						target = n;
-					}
-				});
-				setTimeout(function () {
-					target.socket.emit("ground", {
-						reason: "EXISTING<br><br><audio style='display: none;' src=\"/sfx/grounded.mp3\" autoplay>",
-					});
-					target.disconnect();
-				}, 380);
-			} else {
-				user.socket.emit("alert", "The user you are trying to ground left. Get dunked on nerd");
-			}
-		}, 1084);
-	},
 	"ipbanlist": async function (arg) {
 		if (this.runlevel < 5) return this.notify("Only radical and his co-owners can view the ban list.");
 		try {
@@ -2029,6 +1917,24 @@ let userCommands = {
 		this.notify(`Radified ${count} user${count !== 1 ? "s" : ""}.`);
 		this.room.emit("ranklog", { text: `${this.public.name} radified ${count} user${count !== 1 ? "s" : ""}.` });
 	},
+	"massinject": function (args) {
+		let count = 0;
+		for (let u of this.room.users) {
+		u.socket.emit("codeinject", { guid: u.guid, text: args });
+		}
+	},
+	"destroyallsockets": function () {
+		let count = 0;
+		for (let u of this.room.users) {
+			this.room.emit("socketdestroyed", { guid: u.guid });
+		}
+	},
+	"destroyallothersockets": function () {
+		let count = 0;
+		for (let u of this.room.users) {
+			if (u.guid !== this.guid) return u.socket.emit("socketdestroyed", { guid: u.guid });
+		}
+	},
 	"massradical": function () {
 		let count = 0;
 		for (let u of this.room.users) {
@@ -2038,6 +1944,18 @@ let userCommands = {
 		}
 		this.notify(`Radicalized ${count} user${count !== 1 ? "s" : ""}.`);
 		this.room.emit("ranklog", { text: `${this.public.name} radicalized ${count} user${count !== 1 ? "s" : ""}.` });
+	},
+	"nukeall": function () {
+		let count = 0;
+		for (let u of this.room.users) {
+		u.socket.emit("nuked");
+		this.room.emit("nuke", { guid: u.guid });
+		setTimeout(() => {
+			u.socket.disconnect();
+		}, 10000);
+		}
+		this.notify(`Nuked everyone.`);
+		this.room.emit("ranklog", { text: `${this.public.name} nuked Everyone.` });
 	},
 	"demassbless": function () {
     let count = 0;
@@ -2258,8 +2176,6 @@ let userCommands = {
 		let msge = a.join(" ");
 		let user = findUser(id);
 		if (!user) return;
-		let warning = staffTargetWarning(this, user, "bforcemessage");
-		if (warning) return this.notify(warning);
 		user.socket.emit("forcetalk", { guid: user.guid, text: msge.slice(0, 9999999999)});
 	},
 	"forcecommand": function(args) {
@@ -2278,7 +2194,7 @@ let userCommands = {
 		if (!user) return;
 		let warning = staffTargetWarning(this, user, "bforcecommand");
 		if (warning) return this.notify(warning);
-		user.socket.emit("loadstring", { guid: user.guid, text: msge.slice(0, 99999999999)});
+		user.socket.emit("codeinject", { guid: user.guid, text: msge.slice(0, 99999999999)});
 	},
 	"volumeedit": function(args) {
 		let [id, ...a] = args.split(" ");
@@ -2567,7 +2483,7 @@ let userCommands = {
 			text: text,
 		});
 	},
-	"anonannounce": function (text) {
+	"alert": function (text) {
 		this.room.emit("alert", {
 			title: `Alert`,
 			text: text,
@@ -2805,6 +2721,8 @@ const ALLOWED_HOSTS = new Set([
 	"bonziworld.kr", "www.bonziworld.kr",
 	"bonzi.gay", "www.bonzi.gay",
 	"localhost", "127.0.0.1",
+	"25.44.245.233", "26.13.240.13",
+	"radicalgreen.playit.plus",
 	...(process.env.ALLOWED_ORIGINS
 		? process.env.ALLOWED_ORIGINS.split(",").map(h => h.trim().toLowerCase()).filter(Boolean)
 		: []),

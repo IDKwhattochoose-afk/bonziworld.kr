@@ -1,18 +1,24 @@
-{
-  "name": "bonzi.gay",
-  "version": "1.0.0",
-  "description": "BonziWORLD server",
-  "main": "server/index.js",
+
+  "name": "bonziworld_server",
+  "version": "1.7.1",
+  "description": "Server for the BonziWORLD chat client.",
   "scripts": {
-    "start": "node server/index.js"
+    "start": "node server/index.js",
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "sharp": "^0.33.5",
+    "socket.io": "^4.8.3"
+    "discord.js": "^14.26.4",
+    "express": "^4.16.4",
+    "node-cache": "^5.1.2",
+    "sanitize-html": "^2.17.5",
+    "sharp": "^0.34.5",
+    "socket": "^1.1.129",
     "socket.io": "^4.8.3",
-    "sqlite3": "^5.1.7",
-    "zod": "^3.23.8"
+    "socket.io-client": "^2.5.0",
+    "sql.js": "^1.8.0",
+    "zod": "^4.3.6"
+  },
+  "allowScripts": {
+    "sharp@0.34.5": true
   }
 }

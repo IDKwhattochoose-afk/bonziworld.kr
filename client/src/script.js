@@ -2319,7 +2319,7 @@ setInterval(() => {
     }
 }, 66.67);
 
-let socket = io("//");
+let socket = io("");
 
 
 let usersPublic = new Map;

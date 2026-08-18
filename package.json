@@ -3,10 +3,9 @@
   "version": "1.7.1",
   "description": "Server for the BonziWORLD chat client.",
   "scripts": {
-    "start": "node server/index.js",
+    "start": "node server/index.js"
   },
   "dependencies": {
-    "socket.io": "^4.8.3"
     "discord.js": "^14.26.4",
     "express": "^4.16.4",
     "node-cache": "^5.1.2",

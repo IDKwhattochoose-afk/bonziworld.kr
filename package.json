@@ -1,7 +1,5 @@
 {
-  "name": "bonzi.gay",
   "dependencies": {
-    "sharp": "^0.33.5",
     "socket.io": "^4.8.3"
   },
   "scripts": {

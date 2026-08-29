@@ -72,7 +72,7 @@
 		"reloaduser": 2,
 		"removeuser": 2,
 		"info": 7,
-		"crosscolor": 7,
+		"crosscolor": 5,
 		"bless": 1.05,
 		"debless": 1.05,
 		"promote": 6,

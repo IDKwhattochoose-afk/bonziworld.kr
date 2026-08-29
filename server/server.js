@@ -1386,7 +1386,7 @@ let userCommands = {
                 if (this.public.statlocked) return;
 		let hatList = input.split(" ");
 		hatList[0] ||= settings.hats[Math.floor(Math.random() * settings.hats.length)];
-		let limit = 1;
+		let limit = 3;
 		let hats = settings.hats;
 		if (this.runlevel >= 1) {
 			limit = 3;

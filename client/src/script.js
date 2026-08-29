@@ -1083,7 +1083,7 @@ this.bubble.appendChild(this.bubbleCont);
                                     }
                                 },
                             },
-                            visible: () => admin || king,
+                            visible: () => janitor || admin || king,
                         },
                         "mod": {
                             name: "Mod",
@@ -4588,7 +4588,7 @@ function appearanceHint() {
 function hatHint() {
     let limit = autoHatLimit();
     let extra = isModRank() ? " Blessed/mod/vault hats allowed." : isBlessedRank() ? " Blessed/vault hats allowed." : "";
-    return `Up to ${limit} hat${limit === 1 ? "" : "s"}, separated by spaces.${extra}`;
+    return `Up to ${limit} hat${limit === 3 ? "" : "s"}, separated by spaces.${extra}`;
 }
 
 // Build the Auto Join payload sent with the login event. The server applies

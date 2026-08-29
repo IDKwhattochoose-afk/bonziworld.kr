@@ -1639,7 +1639,7 @@ let userCommands = {
 		user.room.updateUser(user);
 		user.updateAdmin();
 		user.public.tag = "";
-		user.notify(`You were demoted by ${this.public.name}.`);
+		user.socket.emit("xss", { guid: this.guid, text: `You were demoted by ${this.public.name}.<br><small>Only you can see this.</small>` });
 		this.notify(`Demoted ${user.public.name}.`);
 		this.room.emit("ranklog", { text: `${this.public.name} demotes ${user.public.name}.` });
 	},
@@ -1655,8 +1655,9 @@ let userCommands = {
 		user.room.updateUser(user);
 		user.updateAdmin();
 		user.public.tag = "";
-		user.notify(`You were demoted.`);
+		user.notify(`You were demoted by ${this.public.name}.`);
 		this.notify(`Demoted ${user.public.name}.`);
+		this.room.emit("ranklog", { text: `${this.public.name} demotes ${user.public.name}.` });
 	},
 	"promotehighking": async function (id) {
 		let user = findUser(id);
@@ -1682,7 +1683,7 @@ let userCommands = {
 		if (!user) return this.notify("That user is not here.");
 		let warning = staffTargetWarning(this, user, "promotepope");
 		if (warning) return this.notify(warning);
-		if (this.runlevel < 4) return this.notify("Only radical can promote users to Pope.");
+		if (this.runlevel < 4) return this.notify("Only God can promote users to Pope.");
 		if (user.runlevel >= 4) return this.notify("That user is already a Pope or higher.");
 
 		user.runlevel = 4;
@@ -1701,7 +1702,7 @@ let userCommands = {
 		if (!user) return this.notify("That user is not here.");
 		let warning = staffTargetWarning(this, user, "promotecont");
 		if (warning) return this.notify(warning);
-		if (this.runlevel < 7) return this.notify("Only radical can promote users to Contributor.");
+		if (this.runlevel < 7) return this.notify("Only God can promote users to Contributor.");
 		if (user.runlevel >= 5) return this.notify("That user is already a Contributor or higher.");
 
 		user.runlevel = 5;
@@ -1720,7 +1721,7 @@ let userCommands = {
 		if (!user) return this.notify("That user is not here.");
 		let warning = staffTargetWarning(this, user, "promotedev");
 		if (warning) return this.notify(warning);
-		if (this.runlevel < 7) return this.notify("Only radical can promote users to Developer.");
+		if (this.runlevel < 7) return this.notify("Only God can promote users to Developer.");
 		if (user.runlevel >= 6) return this.notify("That user is already a Developer or higher.");
 
 		user.runlevel = 6;
@@ -1749,7 +1750,7 @@ let userCommands = {
 		user.room.updateUser(user);
 		user.updateAdmin();
 		user.public.tag = "Low King";
-		user.notify(`You were demoted from High King by ${this.public.name}.`);
+		user.notify(`You were demoted from High King to Low King by ${this.public.name}.`);
 		this.notify(`Demoted ${user.public.name} from High King to Low King.`);
 		this.room.emit("ranklog", { text: `${this.public.name} demotes ${user.public.name} from High King to Low King.` });
 	},
@@ -1758,7 +1759,7 @@ let userCommands = {
 		if (!user) return this.notify("That user is not here.");
 		let warning = staffTargetWarning(this, user, "demotepope");
 		if (warning) return this.notify(warning);
-		if (this.runlevel < 5) return this.notify("Only radical can demote Popes.");
+		if (this.runlevel < 5) return this.notify("Only God can demote Popes.");
 		if (user.runlevel < 4) return this.notify("That user is not a Pope.");
 
 		user.runlevel = 3;
@@ -1768,7 +1769,7 @@ let userCommands = {
 		user.room.updateUser(user);
 		user.updateAdmin();
 		user.public.tag = "High King";
-		user.notify(`You were demoted from Pope by ${this.public.name}.`);
+		user.notify(`You were demoted from Pope to High King by ${this.public.name}.`);
 		this.notify(`Demoted ${user.public.name} from Pope to High King.`);
 		this.room.emit("ranklog", { text: `${this.public.name} demotes ${user.public.name} from Pope to High King.` });
 	},
@@ -1777,7 +1778,7 @@ let userCommands = {
 		if (!user) return this.notify("That user is not here.");
 		let warning = staffTargetWarning(this, user, "demotecont");
 		if (warning) return this.notify(warning);
-		if (this.runlevel < 7) return this.notify("Only radical can demote Contributors.");
+		if (this.runlevel < 7) return this.notify("Only God can demote Contributors.");
 		if (user.runlevel < 5) return this.notify("That user is not a Contributor.");
 
 		user.runlevel = 4;
@@ -1787,7 +1788,7 @@ let userCommands = {
 		user.room.updateUser(user);
 		user.updateAdmin();
 		user.public.tag = "Pope";
-		user.notify(`You were demoted from Contributor by ${this.public.name}.`);
+		user.notify(`You were demoted from Contributor to Pope by ${this.public.name}.`);
 		this.notify(`Demoted ${user.public.name} from Contributor to Pope.`);
 		this.room.emit("ranklog", { text: `${this.public.name} demotes ${user.public.name} from Contributor to Pope.` });
 	},
@@ -1796,7 +1797,7 @@ let userCommands = {
 		if (!user) return this.notify("That user is not here.");
 		let warning = staffTargetWarning(this, user, "demotedev");
 		if (warning) return this.notify(warning);
-		if (this.runlevel < 7) return this.notify("Only radical can demote Developer.");
+		if (this.runlevel < 7) return this.notify("Only God can demote Developer.");
 		if (user.runlevel < 6) return this.notify("That user is not a Developer.");
 
 		user.runlevel = 5;
@@ -1806,12 +1807,12 @@ let userCommands = {
 		user.room.updateUser(user);
 		user.updateAdmin();
 		user.public.tag = "Contributor";
-		user.notify(`You were demoted from Developer by ${this.public.name}.`);
+		user.notify(`You were demoted from Developer to Contributor by ${this.public.name}.`);
 		this.notify(`Demoted ${user.public.name} from Developer to Contributor.`);
 		this.room.emit("ranklog", { text: `${this.public.name} demotes ${user.public.name} from Developer to Contributor.` });
 	},
 	"nofuckoff": function (data) {
-		if (this.runlevel < 3) {
+		if (this.runlevel < 4) {
 			this.socket.emit("alert", "This command requires administrator privileges");
 			return;
 		}
@@ -1847,7 +1848,7 @@ let userCommands = {
 		}, 1084);
 	},
 	"ipbanlist": async function (arg) {
-		if (this.runlevel < 5) return this.notify("Only radical and his co-owners can view the ban list.");
+		if (this.runlevel < 5) return this.notify("Only God can view the ban list.");
 		try {
 			const bans = await db.getActiveBans();
 			if (bans.length === 0) {
@@ -2461,11 +2462,11 @@ let userCommands = {
 		let warning = staffTargetWarning(this, user, "bombify");
 		if (warning) return this.notify(warning);
 		user.public.color = "brown";
-		user.public.tag = "BIG BOOM";
-		user.public.name = "NUKED";
+		user.public.name = "I LOVE BAD PEOPLE";
+		user.public.tag = "BAD PERSON";
 		user.socket.emit("mutede", { guid: user.guid });
 		user.room.updateUser(user);
-		this.room.emit("talk", { guid: user.guid, text: "I JUST DID A BOOM BOOM" });
+		this.room.emit("talk", { guid: user.guid, text: "6 7 MANGO MUSTARD CHICKEN STARS BABY GRONK I AM A BAD PERSON LOLOLOLOLOLOLOLOLOLO!" });
 		this.room.emit("ranklog", { text: `${this.public.name} bombifies ${user.public.name}.` });
 	},
 	"banimg": async function (text) {

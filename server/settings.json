@@ -1,5 +1,5 @@
 {
-	"nameLimit": 25,
+	"nameLimit": 45,
 	"charLimit": 3000,
 	"voiceCountries": [],
 	"pitch": {
@@ -265,7 +265,7 @@
 		"diamondhat",
 		"whiteobama"
 	],
-	"port": 2713,
+	"port": 4343,
 	"express": {
 		"serveStatic": true
 	},

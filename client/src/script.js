@@ -269,7 +269,7 @@ function applyColorMarkup(text) {
 // Gavel icon shown in the name bubble for popes / god-level admins
 // (server sends userPublic.gavel). Uses FontAwesome classes and inline color.
 
-const RADICAL_CAT = `<i class="fa-classic fa-solid fa-cat" style="color:#00ff00;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
+const RADICAL_CAT = `<i class="fa-classic fa-solid fa-sith" style="color:#ff0000;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
 const HOOPS_CAT = `<i class="fa-classic fa-solid fa-cat" style="color:#e771b5;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
 const CONTRIBUTOR_ICON = `<i class="fa-solid fa-handshake-angle" style="color:#00c800;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;
 const DEVELOPER_CODE = `<i class="fa-solid fa-code" style="color:#000000;vertical-align:-0.125em;margin-right:3px;" aria-hidden="true"></i>`;

@@ -3,7 +3,7 @@
 	"charLimit": 3000,
 	"voiceCountries": [],
 	"pitch": {
-		"max": 125,
+		"max": 150,
 		"min": 10
 	},
 	"speed": {

@@ -4,11 +4,11 @@
 	"voiceCountries": [],
 	"pitch": {
 		"max": 125,
-		"min": 15
+		"min": 10
 	},
 	"speed": {
-		"max": 275,
-		"min": 125
+		"max": 325,
+		"min": 75
 	},
 	"runlevel": {
 		"godmode": 0,
